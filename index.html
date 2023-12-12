@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+  <html>
+    <meta charset=utf-8>
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1,user-scalable=yes">
+    <title>Deploy a Kubernetes Cluster</title>
+    <link rel="stylesheet" href="./styles.css">
+
+    <style>
+       
+       
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      * {
+        margin: 0;
+      }
+      body {
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      img,
+      picture,
+      video,
+      canvas,
+      svg {
+        display: block;
+        max-width: 100%;
+      }
+      input,
+      button,
+      textarea,
+      select {
+        font: inherit;
+      }
+      p,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        overflow-wrap: break-word;
+      }
+
+       
+
+      :root {
+        --column-gap: 1.5rem;
+        --number-columns: 13;
+        --column-width: calc((100vw - (1.5rem * var(--number-columns))) / 14);
+      }
+      @media (min-width: 65em) {
+        :root {
+          --number-columns: 15;
+        }
+      }
+      @media (min-width: 100em) {
+         
+        :root {
+          --column-width: calc(60rem / 12);
+        }
+      }
+
+      html {
+        background: #0d0d0e;
+        color: #2E2E32;
+        font-size: 15px;
+      }
+      @media (min-width: 50em) {
+        html {
+          font-size: 16px;
+        }
+      }
+      @media (min-width: 80em) {
+        html {
+          font-size: 17px;
+        }
+      }
+      @media (min-width: 100em) {
+        html {
+          font-size: 18px;
+        }
+      }
+
+      body {
+        font-family: CiscoSans, serif;
+        padding-bottom: calc(2 * var(--column-gap));
+      }
+
+       
+
+      a {
+        color: #0076D5;
+      }
+      a:hover {
+        opacity: 0.7;
+      }
+
+      button {
+        -webkit-appearance: none;
+        appearance: none;
+        background: none;
+        border: 0;
+        color: inherit;
+        cursor: pointer;
+        display: inline-block;
+        padding: 0;
+      }
+
+      code {
+        background: #E8EAED;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+        padding: 0.25em;
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        line-height: 1.25em;
+      }
+
+      pre {
+        background: #E8EAED;
+        font-size: 0.875rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 1rem;
+      }
+      pre code {
+        background: none;
+      }
+
+       
+
+      .avatar {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-bottom: calc(2 * var(--column-gap));
+      }
+
+      .avatar-circle {
+        align-items: center;
+        background: #323737;
+        border-radius: 1.5rem;
+        color: white;
+        display: flex;
+        height: 3rem;
+        justify-content: center;
+        padding-bottom: 0.125rem;
+        width: 3rem;
+      }
+
+       
+
+      .bold {
+        font-weight: bold;
+      }
+
+       
+
+      .content img:not(:last-child),
+      .content ol:not(:last-child),
+      .content p:not(:last-child),
+      .content pre:not(:last-child),
+      .content ul:not(:last-child) {
+        margin-bottom: var(--column-gap);
+      }
+
+       
+
+      .grid {
+        display: grid;
+        gap: var(--column-gap);
+        grid-template-columns: repeat(14, 1fr);
+        width: 100%;
+      }
+      @media (min-width: 65em) {
+        .grid {
+          padding: 0 var(--column-gap);
+        }
+      }
+      @media (min-width: 100em) {
+        .grid {
+          grid-template-columns: 1fr repeat(12, calc(60rem / 12)) 1fr;
+        }
+      }
+
+       
+
+      .head {
+        background: #323737;
+        color: white;
+        margin-bottom: 0.5rem;
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      @media (min-width: 35em) {
+        .head {
+          margin-bottom: var(--column-gap);
+        }
+      }
+      @media (min-width: 65em) {
+        .head {
+          margin-bottom: var(--column-gap);
+          padding: var(--column-gap) 0;
+          position: relative;
+        }
+      }
+      @media (min-width: 80em) {
+        .head {
+          margin-bottom: calc(2 * var(--column-gap));
+        }
+      }
+
+       
+
+      .head-content {
+        align-items: center;
+        display: flex;
+        gap: var(--column-gap);
+        grid-column: 1 / span 14;
+        justify-content: space-between;
+        padding-left: var(--column-gap);
+        padding-right: var(--column-gap);
+      }
+      @media (min-width: 50em) {
+        .head-content {
+          grid-column: 2 / span 12;
+          padding-left: 0;
+          padding-right: 0;
+        }
+      }
+      @media (min-width: 65em) {
+        .head-content {
+          margin-left: calc(-1 * var(--column-gap));
+          margin-right: calc(-1 * var(--column-gap));
+        }
+      }
+      @media (min-width: 80em) {
+        .head-content {
+          grid-column: 2 / span 12;
+          margin: 0;
+          padding-left: 0;
+          padding-right: 0;
+        }
+      }
+
+       
+
+      .head-content-aside {
+        align-items: center;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+       
+
+      .head-content-main {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+      }
+
+       
+
+      .h1 {
+        font-size: 2rem;
+        font-weight: normal;
+        margin-bottom: calc(var(--column-gap) - 0.25rem);
+        @media (min-width: 65em) {
+          font-size: 2.75rem;
+        }
+      }
+      .h2, .content h1, .content h2 {
+        font-size: 1.75rem;
+        font-weight: normal;
+        @media (min-width: 65em) {
+          font-size: 2.25rem;
+        }
+      }
+      .h3, .content h3 {
+        font-size: 1.375rem;
+        font-weight: bold;
+        @media (min-width: 65em) {
+          font-size: 1.5rem;
+        }
+      }
+
+      .content h1, .content h2, .content h3 {
+        margin-bottom: calc(var(--column-gap) - 0.25rem);
+      }
+
+      .content h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+      }
+
+      .content h5,
+      .content h6 {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+      }
+
+      .h--border {
+        border-bottom: 1px solid #c3c4c5;
+        margin-bottom: calc(var(--column-gap) + 0.5rem);
+        padding-bottom: var(--column-gap);
+      }
+
+       
+
+      .logo {
+        height: 1.25rem;
+        width: auto;
+      }
+      @media (min-width: 50em) {
+        .logo {
+          height: 2rem;
+        }
+      }
+
+       
+
+      .main {
+        --content-pad-x: var(--column-gap);
+        grid-column: 1 / span 14;
+      }
+      @media (min-width: 35em) {
+        .main {
+          grid-column: 2 / span 12;
+          margin: 0 calc(-1 * var(--column-width));
+        }
+      }
+      @media (min-width: 50em) {
+        .main {
+          --content-pad-x: var(--column-width);
+          grid-column: 2 / span 12;
+          margin: 0;
+        }
+      }
+      @media (min-width: 65em) {
+        .main {
+          --content-pad-x: calc(1.5 * var(--column-gap));
+          grid-column: 1 / span 10;
+        }
+      }
+      @media (min-width: 80em) {
+        .main {
+          grid-column: 2 / span 9;
+        }
+      }
+      @media (min-width: 100em) {
+        .main {
+          --content-pad-x: calc(2 * var(--column-gap));
+        }
+      }
+      @media (min-width: 100em) and (min-height: 50em) {
+         
+        .main {
+          --content-pad-x: calc(var(--column-width) / 1.5);
+        }
+      }
+
+       
+
+      .main-content {
+        background: white;
+        border-top-left-radius: 0.75rem;
+        border-top-right-radius: 0.75rem;
+        padding: var(--content-pad-x);
+      }
+
+      @keyframes enterMainContent {
+        from {
+          opacity: 0;
+        }
+      }
+
+      .main-content * {  
+        animation: 500ms enterMainContent ease-in-out;
+      }
+
+       
+
+      .pagination {
+        --button-height: 2.75rem;
+        background: #0051af;
+        border-bottom-left-radius: 0.75rem;
+        border-bottom-right-radius: calc(
+          (var(--button-height) / 2) + var(--content-pad-x, --column-gap)
+        );
+        color: white;
+        display: flex;
+        gap: var(--column-gap);
+        padding: var(--content-pad-x, --column-gap);
+      }
+
+      .pagination a {
+        background: #0076d5;
+        border-radius: calc(var(--button-height) / 2);
+        color: white;
+        padding: 0.625rem 1rem;
+        text-decoration: none;
+        transition: 150ms opacity ease-out;
+      }
+      .pagination a:hover {
+        opacity: 0.85;
+      }
+      a.pagination-next {
+        margin-left: auto;
+      }
+
+       
+
+      .skip {
+        opacity: 0;
+         
+        pointer-events: none;
+        margin-left: 1rem;
+      }
+
+      .skip:focus {
+        opacity: 1;
+         
+        pointer-events: initial;
+      }
+
+       
+
+      .sidebar {
+        bottom: 0;
+        display: block;
+        left: 0;
+        opacity: 0;
+        overflow-y: auto;
+        padding-top: 3.5rem;
+        pointer-events: none;
+        position: fixed;
+        right: 0;
+        top: 0;
+        transition: 150ms opacity ease-out,
+          300ms transform ease-out,
+          300ms visibility ease-out;
+        visibility: hidden;
+      }
+      @media (min-width: 50em) {
+        .sidebar {
+          padding-top: 4rem;
+        }
+      }
+      @media (min-width: 65em) {
+        .sidebar {
+          all: unset;
+          grid-column: 11 / span 4;
+        }
+      }
+      @media (min-width: 80em) {
+        .sidebar {
+          grid-column: 11 / span 3;
+        }
+      }
+
+      .sidebar--show {
+        opacity: 1;
+        pointer-events: initial;
+        visibility: visible;
+      }
+
+       
+
+      .sidebar a {
+        align-items: center;
+        border-top: 1px solid #0D0D0E;
+        color: #c3c4c5;
+        display: flex;
+        gap: calc(var(--column-gap) / 2);
+        padding: 1rem var(--column-gap);
+        text-decoration: none;
+        transition: 150ms color ease-out;
+      }
+      .sidebar a::before {
+        background: #606162;
+        border-radius: calc(0.75rem / 2);
+        content: "";
+        display: block;
+        flex: 0 0 0.75rem;
+        height: 0.75rem;
+      }
+      .sidebar a:visited::before {
+        background: #b3e460;
+      }
+      .sidebar a:hover {
+        color: #ffffff;
+      }
+      @media (min-width: 50em) {
+        .sidebar a {
+          padding-left: calc(var(--column-width) + var(--column-gap));
+        }
+      }
+      @media (min-width: 65em) {
+        .sidebar a {
+          border-top: none;
+          padding: 0.75rem;
+        }
+      }
+
+      .sidebar li {
+        list-style: none;
+      }
+       
+      .sidebar li:first-child a {
+        background: #27292a;
+        color: #ffffff;
+      }
+
+      .sidebar ul {
+        background: #323737;
+        margin: 0;
+        padding: 0;
+      }
+      @media (min-width: 65em) {
+        .sidebar ul {
+          background: none;
+        }
+      }
+
+       
+
+      .sidebar-close {
+        all: unset;
+        background: rgba(13, 13, 14, 0.5);
+        bottom: 0;
+        display: block;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: 150ms opacity ease-out;
+      }
+
+      @media (min-width: 65em) {
+        .sidebar-close {
+          display: none;
+        }
+      }
+
+       
+
+      .sidebar-content {
+        position: sticky;
+        transform: translateY(calc(-1 * var(--column-gap)));
+        transition: 150ms opacity ease-out,
+          300ms transform ease-out;
+        z-index: 2;
+      }
+
+      @media (min-width: 65em) {
+        .sidebar-content {
+          display: block;
+          padding-top: 1rem;
+          top: 1.625rem;
+        }
+      }
+
+      .sidebar--show .sidebar-content {
+        opacity: 1;
+        transform: none;
+        visibility: visible;
+      }
+
+       
+
+      .sidebar-title {
+        border-bottom: 1px solid #323737;
+        color: #ffffff;
+        display: none;
+        font-size: 0.875rem;
+        margin-bottom: var(--column-gap);
+        padding-bottom: calc(var(--column-gap) - 0.375rem);
+        text-align: center;
+        @media (min-width: 65em) {
+          display: block;
+        }
+      }
+
+       
+
+      .toggle {
+        display: block;
+         
+        @media (min-width: 65em) {
+          display: none;
+        }
+      }
+    </style>
+
+    
+    
+    <link rel=stylesheet href=https://www.cisco.com/etc/designs/cdc/clientlibs/responsive/css/cisco-sans.min.css type=text/css>
+    
+    
+    
+
+    
+  </head>
+  <body>
+    <div class="head">
+      <div class="grid">
+        <div class="head-content">
+          <div class="head-content-main">
+            <button class="toggle" aria-label="Toggle Menu" id="menu-toggle">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+                <rect height="2" width="16" x="0" y="2" />
+                <rect height="2" width="16" x="0" y="7" />
+                <rect height="2" width="16" x="0" y="12" />
+              </svg>                
+            </button>
+            <img class="logo" src="logo.svg" />
+            <button class="skip" id="skip-navigation">Skip to Navigation</button>
+          </div>
+
+
+          <div class="head-content-aside">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+              <path fill="#fff" fill-rule="evenodd" d="M10 20c5.523 0 10-4.477 10-10S15.523 0 10 0 0 4.477 0 10s4.477 10 10 10Zm1-16a1 1 0 1 0-2 0v7.262l3.277 3.429a1 1 0 0 0 1.446-1.382L11 10.46V4Z" clip-rule="evenodd"/>
+            </svg>
+            6:00 mins remaining
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <main class="main">
+        <div class="main-content">
+          
+            <div>
+              <h1 class="h1">Deploy a Kubernetes Cluster</h1>
+              <h2 class="h2 h--border">About</h2>
+              <p>Your containers need orchestration! This lab will guide you through deploying your first Kubernetes cluster and how to interact with it via kubectl.</p>
+              <div class="avatar">
+                <div class="avatar-circle">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none">
+                    <path fill="#fff" fill-rule="evenodd" d="M10 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm9.239 8.173A10 10 0 0 1 20 20H0a10 10 0 0 1 19.239-3.827Z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="bold">Written by Kareem Iskander</div>
+                  <div>Updated 2022-07-15</div>
+                </div>
+              </div>
+            </div>
+          
+
+          <h1 class="h2 h--border">Congratulations</h1>
+
+          <div class="content">
+            <p>Congratulations! You've successfully completed this lab!</p>
+<h2 id="learn-more">Learn More</h2>
+<ul>
+<li><a href="https://learningnetwork.cisco.com/s/topic/0TO3i0000008jY5GAI/devnet-certifications-community">Cisco Learning Network DevNet Certifications Community</a></li>
+<li><a href="https://learningnetwork.cisco.com/s/devnet-training-videos">DevNet Certification Training Videos</a></li>
+<li><a href="https://developer.cisco.com/automation-bootcamp/">DevNet Automation Bootcamp</a></li>
+</ul>
+
+          </div>
+        </div>
+        <div class="pagination">
+          
+          
+            <a href="/?current=1" class="pagination-next" id="pagination-next">Next Page</a>
+          
+        </div>
+      </main>
+
+      <nav class="sidebar">
+        <div class="sidebar-content">
+          <div class="sidebar-title">Deploy a Kubernetes Cluster</div>
+          <ul>
+            
+              <li>
+                <a href="/?current=0">Overview</a>
+              </li>
+            
+              <li>
+                <a href="/?current=1">What is K8s</a>
+              </li>
+            
+              <li>
+                <a href="/?current=2">Deploy K8s</a>
+              </li>
+            
+              <li>
+                <a href="/?current=3">Kubectl Basics</a>
+              </li>
+            
+              <li>
+                <a href="/?current=4">Congratulations</a>
+              </li>
+            
+          </ul>
+        </div>
+        <button class="sidebar-close" id="menu-close"></button>
+      </nav>
+    </div>
+
+    <script>
+      
+      document.getElementById("menu-toggle").addEventListener("click", () => {
+        document.querySelector(".sidebar").classList.toggle("sidebar--show");
+      })
+      document.getElementById("menu-close").addEventListener("click", () => {
+        document.querySelector(".sidebar").classList.remove("sidebar--show");
+      })
+
+      
+      window.addEventListener("keydown", (event) => {
+        const prevPage = document.getElementById("pagination-prev");
+        const nextPage = document.getElementById("pagination-next");
+        if (event.code === "ArrowLeft") {
+          if (prevPage) {
+            prevPage.click();
+          }
+        } else if (event.code === "ArrowRight") {
+          if (nextPage) {
+            nextPage.click();
+          }
+        }
+      })
+
+      
+      document.getElementById("skip-navigation").addEventListener("keydown", (event) => {
+        if (event.code === "Enter" || event.code === "Space") {
+          event.preventDefault();
+          document.querySelector(".sidebar li:first-child a").focus();
+        }
+      })
+      document.getElementById("skip-navigation").addEventListener("click", () => {
+        document.querySelector(".sidebar li:first-child a").focus();
+      })
+    </script>
+  </body>
+</html>
